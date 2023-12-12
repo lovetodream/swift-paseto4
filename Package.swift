@@ -8,7 +8,7 @@ let package = Package(
         .library(name: "Paseto4", targets: ["Paseto4"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-crypto.git", from: "3.0.0"),
+        .package(url: "https://github.com/apple/swift-crypto.git", "1.0.0" ..< "4.0.0"),
         .package(url: "https://github.com/lovetodream/swift-blake2", from: "0.1.0"),
     ],
     targets: [
