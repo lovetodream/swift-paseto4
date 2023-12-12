@@ -121,7 +121,7 @@ public struct Token {
         return encoder
     }()
 
-    public init(claims: Claims, footer: String = "") throws {
+    public init(claims: Claims, footer: String = "") {
         self.claims = claims
         self.footer = footer
     }
@@ -129,5 +129,23 @@ public struct Token {
     public init(encodedData: Data, footer: String) throws {
         self.claims = try Self.decoder.decode(Claims.self, from: encodedData)
         self.footer = footer
+    }
+}
+
+public extension Token {
+    func sign(with key: AsymmetricSecretKey) throws -> String {
+        try Public.sign(
+            Token.encoder.encode(self.claims),
+            with: key,
+            footer: Data(footer.utf8)
+        ).description
+    }
+
+    func encrypt(with key: SymmetricKey) throws -> String {
+        try Local.encrypt(
+            Token.encoder.encode(self.claims),
+            with: key,
+            footer: Data(footer.utf8)
+        ).description
     }
 }
