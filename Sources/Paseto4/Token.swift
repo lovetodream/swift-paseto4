@@ -4,7 +4,7 @@ public struct Token: Sendable {
     public var claims: Claims
     public var footer: String
 
-    public struct Claims: Codable, Sendable {
+    public struct Claims: Decodable, Sendable {
         public var audience: String?
         public var expiration: Date?
         public var issuedAt: Date?
@@ -93,10 +93,8 @@ public struct Token: Sendable {
             }
         }
 
-        public func encode(to encoder: Encoder) throws {
-            var container = encoder.singleValueContainer()
-            let values = self.asDictionary
-            try container.encode(values)
+        public func encode(using encoder: JSONEncoder) throws -> Data {
+            try encoder.encode(self.asDictionary)
         }
     }
 
@@ -126,7 +124,7 @@ public struct Token: Sendable {
 public extension Token {
     func sign(with key: AsymmetricSecretKey) throws -> String {
         try Public.sign(
-            Token.encoder.encode(self.claims),
+            self.claims.encode(using: Token.encoder),
             with: key,
             footer: Data(footer.utf8)
         ).description
@@ -134,7 +132,7 @@ public extension Token {
 
     func encrypt(with key: SymmetricKey) throws -> String {
         try Local.encrypt(
-            Token.encoder.encode(self.claims),
+            self.claims.encode(using: Token.encoder),
             with: key,
             footer: Data(footer.utf8)
         ).description

@@ -14,7 +14,7 @@ final class CodingTests: XCTestCase {
             additional: ["id": 0]
         )
 
-        let encodedClaims = try Token.encoder.encode(claims)
+        let encodedClaims = try claims.encode(using: Token.encoder)
         let decodedClaims = try Token.decoder.decode([String: String].self, from: encodedClaims)
         XCTAssertEqual(decodedClaims["aud"], claims.audience)
         XCTAssertEqual(decodedClaims["exp"], Token.timeFormatter.string(from: claims.expiration!))
