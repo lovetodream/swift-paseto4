@@ -1,15 +1,15 @@
 import Foundation
 
-public enum RuleResult {
+public enum RuleResult: Sendable {
     case pass
     case violation(Error)
 }
 
-public typealias Rule = (Token) -> RuleResult
+public typealias Rule = @Sendable (Token) -> RuleResult
 
 public enum Rules { }
 
-enum RuleError: LocalizedError {
+enum RuleError: LocalizedError, Sendable {
     case missingClaim(String)
     case invalidClaim(String, actual: String, expected: String)
     case tokenExpired

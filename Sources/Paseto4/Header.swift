@@ -1,10 +1,10 @@
 import Foundation
 
-enum Version: String {
+enum Version: String, Sendable {
     case v4 = "v4"
 }
 
-struct Header: Equatable {
+struct Header: Equatable, Sendable {
     let version: Version
     let purpose: Purpose
 

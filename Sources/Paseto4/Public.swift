@@ -1,7 +1,7 @@
 import Crypto
 import struct Foundation.Data
 
-public enum Public {
+public enum Public: Sendable {
     public static func sign(_ package: Package, with key: AsymmetricSecretKey) throws -> Message<Public> {
         try self.sign(package, with: key, implicit: .init())
     }

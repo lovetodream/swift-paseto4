@@ -1,7 +1,7 @@
 import Crypto
 import struct Foundation.Data
 
-public struct AsymmetricPublicKey {
+public struct AsymmetricPublicKey: Sendable {
     static let length = 32
 
     public let material: Data

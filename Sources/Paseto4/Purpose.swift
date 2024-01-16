@@ -1,4 +1,4 @@
-enum Purpose: String {
+enum Purpose: String, Sendable {
     case local = "local"
     case `public` = "public"
 }

@@ -1,7 +1,7 @@
 import BLAKE2
 import struct Foundation.Data
 
-public enum Local {
+public enum Local: Sendable {
     static func encrypt(_ package: Package, with key: SymmetricKey, implicit: Data, nonce givenNonce: Data?) throws -> Message<Local> {
         let (message, footer) = (package.content, package.footer)
         let nonceLength = Payload.nonceLength

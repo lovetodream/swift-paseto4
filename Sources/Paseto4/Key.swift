@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol Key {
+public protocol Key: Sendable {
     var material: Data { get }
     init(material: Data) throws
 }

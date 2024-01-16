@@ -1,6 +1,6 @@
 import struct Foundation.Data
 
-public struct Package {
+public struct Package: Sendable {
     public let content: Data
     public let footer: Data
 

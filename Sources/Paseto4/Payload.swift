@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol Payload: DataProtocol {
+public protocol Payload: DataProtocol, Sendable {
     var data: Data { get }
 
     init?(data: Data)

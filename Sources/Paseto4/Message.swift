@@ -1,10 +1,10 @@
 import struct Foundation.Data
 
-public protocol PayloadContainer {
+public protocol PayloadContainer: Sendable {
     associatedtype Payload: Paseto4.Payload
 }
 
-public struct Message<Container: PayloadContainer> {
+public struct Message<Container: PayloadContainer>: Sendable {
     typealias Payload = Container.Payload
 
     let header: Header = Message.header
