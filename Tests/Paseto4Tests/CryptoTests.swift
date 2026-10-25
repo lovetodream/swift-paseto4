@@ -1,17 +1,20 @@
-import XCTest
+import Foundation
+import Testing
 @testable import Paseto4
 
-final class CryptoTests: XCTestCase {
-    func testSimplePayload() {
-        let res = XChaCha20.streamXOR(
-            message: [212, 181, 70, 116, 208, 31, 118, 190, 224, 254, 186],
-            nonce: [UInt8](repeating: 0, count: 24),
-            key: [UInt8](repeating: 0, count: 32)
-        )
-        XCTAssertEqual(String(data: res, encoding: .utf8), "hello world")
+@Suite
+struct CryptoTests {
+    @Test
+    func simplePayload() {
+        let message: [UInt8] = [212, 181, 70, 116, 208, 31, 118, 190, 224, 254, 186]
+        let nonce = [UInt8](repeating: 0, count: 24)
+        let key = [UInt8](repeating: 0, count: 32)
+        let res = XChaCha20.streamXOR(message: message.span, nonce: nonce.span, key: key.span)
+        #expect(String(validating: res, as: UTF8.self) == "hello world")
     }
 
-    func testWithNonceAndKey() {
+    @Test
+    func withNonceAndKey() {
         let cipherText: [UInt8] = [
             16, 2, 190, 188, 61, 46, 0, 93, 238, 200, 127, 246, 96, 122, 199, 
             100, 80, 203, 210, 194, 199, 5, 148, 9, 117, 166, 78, 71, 11, 71,
@@ -36,20 +39,22 @@ final class CryptoTests: XCTestCase {
             43, 48, 48, 58, 48, 48, 34, 125,
         ]
         // check nonce and key stuff!
-        let res = XChaCha20.streamXOR(message: cipherText, nonce: nonce, key: key)
-        XCTAssertEqual(expected, Array(res))
+        let res = XChaCha20.streamXOR(message: cipherText.span, nonce: nonce.span, key: key.span)
+        #expect(expected == res)
     }
 
-    func testURLSafeNoPaddingBase64Invalid() {
+    @Test
+    func urlSafeNoPaddingBase64Invalid() {
         let b64 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAr68PS4AXe7If_ZgesdkUMvSwscFlAl1pk5HC0e8kApeaqMfGo_7OpBnwJOAbY9V7WU6abu74MmcUE8YWAiaArVI8XJ5hOb_4v9RmDkneN0S92dx0OW4pgy7omxgf3S8c3LlQh"
-        let data = Data(base64URLEncoded: b64)
-        XCTAssertNil(data)
+        let data = base64URLDecodedBytes(b64)
+        #expect(data == nil)
     }
 
-    func testURLSafeNoPaddingBase64Valid() {
-        let b64s: [(String, Data?)] = [
+    @Test
+    func urlSafeNoPaddingBase64Valid() {
+        let b64s: [(String, [UInt8]?)] = [
             ("32VIErrEkmY4JVILovbmfPXKW9wT1OdQepjMTC_MOtjA4kiqw7_tcaOM5GNEcnTxl60WkwMsYXw6FSNb_UdJPXjpzm0KW9ojM5f4O2mRvE2IcweP-PRdoHjd5-RHCiExR1IK6t6-tyebyWG6Ov7kKvBdkrrAJ837lKP3iDag2hzUPHuMKA", nil),
-            ("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAr68PS4AXe7If_ZgesdkUMvSwscFlAl1pk5HC0e8kApeaqMfGo_7OpBnwJOAbY9V7WU6abu74MmcUE8YWAiaArVI8XJ5hOb_4v9RmDkneN0S92dx0OW4pgy7omxgf3S8c3LlQg", Data([
+            ("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAr68PS4AXe7If_ZgesdkUMvSwscFlAl1pk5HC0e8kApeaqMfGo_7OpBnwJOAbY9V7WU6abu74MmcUE8YWAiaArVI8XJ5hOb_4v9RmDkneN0S92dx0OW4pgy7omxgf3S8c3LlQg", [
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 2, 190, 188, 61, 46, 0, 93,
                 238, 200, 127, 246, 96, 122, 199, 100, 80, 203, 210, 194, 199,
@@ -59,14 +64,14 @@ final class CryptoTests: XCTestCase {
                 154, 2, 181, 72, 241, 114, 121, 132, 230, 255, 226, 255, 81,
                 152, 57, 39, 120, 221, 18, 247, 103, 113, 208, 229, 184, 166,
                 12, 187, 162, 108, 96, 127, 116, 188, 115, 114, 229, 66
-            ]))
+            ])
         ]
 
         for b64 in b64s.suffix(1) {
-            let data = Data(base64URLEncoded: b64.0)
-            XCTAssertNotNil(data)
+            let data = base64URLDecodedBytes(b64.0)
+            #expect(data != nil)
             if let expected = b64.1 {
-                XCTAssertEqual(data, expected)
+                #expect(data == expected)
             }
         }
     }

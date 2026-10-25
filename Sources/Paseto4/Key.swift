@@ -1,31 +1,22 @@
-import Foundation
-
-public protocol Key: Sendable {
-    var material: Data { get }
-    init(material: Data) throws
+public protocol Key {
+    /// A copy of the raw key material.
+    var bytes: [UInt8] { get }
+    init(bytes: Span<UInt8>) throws
 }
 
 extension Key {
-    var data: Data { self.material }
-    
-    init?(data: Data) {
-        try? self.init(material: data)
-    }
-}
-
-extension Key {
-    public var encoded: String { self.material.base64URLEncodedString(noPadding: true) }
+    public var encoded: String { base64URLEncodedString(self.bytes.span, noPadding: true) }
 
     public init(encoded: String) throws {
-        guard let decoded = Data(base64URLEncoded: encoded) else {
+        guard let decoded = base64URLDecodedBytes(encoded) else {
             fatalError("TODO")
         }
 
-        try self.init(material: decoded)
+        try self.init(bytes: decoded.span)
     }
 
     public init(hex: String) throws {
-        let decoded = try Data(hexString: hex)
-        try self.init(material: decoded)
+        let decoded = try [UInt8](hexString: hex)
+        try self.init(bytes: decoded.span)
     }
 }

@@ -1,30 +1,15 @@
-import Foundation
+public protocol Payload: Sendable {
+    /// A copy of the payload's serialized bytes.
+    var bytes: [UInt8] { get }
 
-public protocol Payload: DataProtocol, Sendable {
-    var data: Data { get }
-
-    init?(data: Data)
+    init?(bytes: [UInt8])
 }
 
 extension Payload {
-    public init?(encoded: String) {
-        guard let data = Data(base64URLEncoded: encoded) else { return nil }
-        self.init(data: data)
+    public init?<S: StringProtocol>(encoded: S) {
+        guard let bytes = base64URLDecodedBytes(encoded) else { return nil }
+        self.init(bytes: bytes)
     }
 
-    public var encoded: String { Data(self).base64URLEncodedString(noPadding: true) }
-}
-
-extension Payload {
-    public var regions: Data.Regions {
-        self.data.regions
-    }
-
-    public var startIndex: Data.Index {
-        self.data.startIndex
-    }
-
-    public var endIndex: Data.Index {
-        self.data.endIndex
-    }
+    public var encoded: String { base64URLEncodedString(self.bytes.span, noPadding: true) }
 }

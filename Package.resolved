@@ -1,12 +1,22 @@
 {
+  "originHash" : "4f26de193e8d4e5abbc87acc352f4c915b949f72b70c0735977009ed20b4ea60",
   "pins" : [
+    {
+      "identity" : "swift-asn1",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-asn1.git",
+      "state" : {
+        "revision" : "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
+        "version" : "1.7.3"
+      }
+    },
     {
       "identity" : "swift-blake2",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/lovetodream/swift-blake2",
       "state" : {
-        "revision" : "b8074b87567037046445ce0859644c283dcce8cc",
-        "version" : "0.1.0"
+        "revision" : "94edab40f92b85e915ca0582db30cf7a06f15d4f",
+        "version" : "0.2.0"
       }
     },
     {
@@ -14,10 +24,10 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-crypto.git",
       "state" : {
-        "revision" : "b51f1d6845b353a2121de1c6a670738ec33561a6",
-        "version" : "3.1.0"
+        "revision" : "c2cbadd7263439d8015189668f96ff5b5be565ce",
+        "version" : "5.0.3"
       }
     }
   ],
-  "version" : 2
+  "version" : 3
 }
