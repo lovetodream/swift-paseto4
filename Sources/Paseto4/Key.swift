@@ -1,4 +1,4 @@
-public protocol Key {
+public protocol Key: Sendable {
     /// A copy of the raw key material.
     var bytes: [UInt8] { get }
     init(bytes: Span<UInt8>) throws

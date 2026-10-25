@@ -1,6 +1,6 @@
 import BLAKE2
 
-public enum Local {
+public enum Local: Sendable {
     static func encrypt(
         content: Span<UInt8>,
         footer: Span<UInt8>,
