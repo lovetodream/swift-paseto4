@@ -1,8 +1,11 @@
-import XCTest
+import Foundation
+import Testing
 @testable import Paseto4
 
-final class CodingTests: XCTestCase {
-    func testClaims() throws {
+@Suite
+struct CodingTests {
+    @Test
+    func claims() throws {
         let claims = Token.Claims(
             audience: "com.test.paseto",
             expiration: Date().addingTimeInterval(1_000_000),
@@ -16,16 +19,16 @@ final class CodingTests: XCTestCase {
 
         let encodedClaims = try claims.encode(using: Token.encoder)
         let decodedClaims = try Token.decoder.decode([String: String].self, from: encodedClaims)
-        XCTAssertEqual(decodedClaims["aud"], claims.audience)
-        XCTAssertEqual(decodedClaims["exp"], Token.timeFormatter.string(from: claims.expiration!))
-        XCTAssertEqual(decodedClaims["iat"], Token.timeFormatter.string(from: claims.issuedAt!))
-        XCTAssertEqual(decodedClaims["iss"], claims.issuer)
-        XCTAssertEqual(decodedClaims["jti"], claims.jti)
-        XCTAssertEqual(decodedClaims["nbf"], Token.timeFormatter.string(from: claims.notBefore!))
-        XCTAssertEqual(decodedClaims["sub"], claims.subject)
-        XCTAssertEqual(decodedClaims["id"].flatMap(Int.init), 0)
-        
+        #expect(decodedClaims["aud"] == claims.audience)
+        #expect(decodedClaims["exp"] == claims.expiration!.formatted(.iso8601))
+        #expect(decodedClaims["iat"] == claims.issuedAt!.formatted(.iso8601))
+        #expect(decodedClaims["iss"] == claims.issuer)
+        #expect(decodedClaims["jti"] == claims.jti)
+        #expect(decodedClaims["nbf"] == claims.notBefore!.formatted(.iso8601))
+        #expect(decodedClaims["sub"] == claims.subject)
+        #expect(decodedClaims["id"].flatMap(Int.init) == 0)
+
         let decodedClaimsAsClaims = try Token.decoder.decode(Token.Claims.self, from: encodedClaims)
-        XCTAssertEqual(decodedClaimsAsClaims, claims)
+        #expect(decodedClaimsAsClaims == claims)
     }
 }

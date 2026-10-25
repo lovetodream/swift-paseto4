@@ -1,4 +1,5 @@
-import XCTest
+import Foundation
+import Testing
 @testable import Paseto4
 
 struct TestVectors: Codable {
@@ -35,8 +36,10 @@ struct TestVectors: Codable {
 }
 
 
-class VectorTest: XCTestCase {
-    func testVersion4() throws {
+@Suite
+struct VectorTest {
+    @Test
+    func version4() throws {
         let contentsURL = Bundle.module.url(forResource: "TestVectors/v4", withExtension: "json")!
         let contents = try Data(contentsOf: contentsURL)
 
@@ -57,7 +60,7 @@ class VectorTest: XCTestCase {
                         implicit: Array(test.implicitAssertion.utf8).span
                       )
                 else {
-                    XCTAssertTrue(test.expectFail, test.name)
+                    #expect(test.expectFail, "\(test.name) was expected to fail")
                     continue
                 }
 
@@ -72,21 +75,21 @@ class VectorTest: XCTestCase {
                         implicit: Array(test.implicitAssertion.utf8).span
                       )
                 else {
-                    XCTAssertTrue(test.expectFail, test.name)
+                    #expect(test.expectFail, "\(test.name) was expected to fail")
                     continue
                 }
 
                 decoded = verified
             }
 
-            XCTAssertFalse(test.expectFail, test.name)
+            #expect(!test.expectFail, "\(test.name) was expected to fail but succeeded")
 
             guard let expected = test.payload else {
-                XCTFail("Unexpected empty test payload")
+                #expect(Bool(false), "Unexpected empty test payload")
                 continue
             }
 
-            XCTAssertEqual(String(validating: decoded.content, as: UTF8.self), expected, test.name)
+            #expect(String(validating: decoded.content, as: UTF8.self) == expected, "\(test.name)")
 
             switch test.key {
             case .some:
@@ -99,7 +102,7 @@ class VectorTest: XCTestCase {
                     nonce: [UInt8](hexString: test.nonce!)
                 )
 
-                XCTAssertEqual(encrypted.description, test.token, test.name)
+                #expect(encrypted.description == test.token, "\(test.name)")
             case .none:
                 break
             }

@@ -122,13 +122,13 @@ public struct Token: Sendable {
 
 public extension Token {
     func sign(with key: AsymmetricSecretKey) throws -> String {
-        let claims = try Token.encoder.encode(self.claims)
+        let claims = try self.claims.encode(using: Token.encoder)
         let footer = Array(self.footer.utf8)
         return try Public.sign(claims.span, with: key, footer: footer.span).description
     }
 
     func encrypt(with key: SymmetricKey) throws -> String {
-        let claims = try Token.encoder.encode(self.claims)
+        let claims = try self.claims.encode(using: Token.encoder)
         let footer = Array(self.footer.utf8)
         return try Local.encrypt(claims.span, with: key, footer: footer.span).description
     }

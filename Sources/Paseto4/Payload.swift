@@ -1,4 +1,4 @@
-public protocol Payload {
+public protocol Payload: Sendable {
     /// A copy of the payload's serialized bytes.
     var bytes: [UInt8] { get }
 

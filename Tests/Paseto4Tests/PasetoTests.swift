@@ -1,8 +1,10 @@
-import XCTest
+import Testing
 @testable import Paseto4
 
-final class PasetoTests: XCTestCase {
-    func testSign() throws {
+@Suite
+struct PasetoTests {
+    @Test
+    func sign() throws {
         let sk = AsymmetricSecretKey()
 
         let message = Array("Hello world!".utf8)
@@ -11,10 +13,11 @@ final class PasetoTests: XCTestCase {
 
         let verified = try Public.verify(signedBlob, with: sk.publicKey)
 
-        XCTAssertEqual(message, verified.content)
+        #expect(message == verified.content)
     }
 
-    func testEncrypt() throws {
+    @Test
+    func encrypt() throws {
         let sk = SymmetricKey()
 
         let message = Array("""
@@ -34,10 +37,11 @@ final class PasetoTests: XCTestCase {
 
         let decrypted = try Local.decrypt(encryptedBlob, with: sk)
 
-        XCTAssertEqual(message, decrypted.content)
+        #expect(message == decrypted.content)
     }
 
-    func testLargeData() throws {
+    @Test
+    func largeData() throws {
         let sk = SymmetricKey()
 
         let message = [UInt8].random(length: 1 << 25)
@@ -46,10 +50,11 @@ final class PasetoTests: XCTestCase {
 
         let result = try Local.decrypt(blob, with: sk).content
 
-        XCTAssertEqual(message, result)
+        #expect(message == result)
     }
 
-    func testReadmeExample() {
+    @Test
+    func readmeExample() {
         let rawToken = "v4.public.eyJkYXRhIjoidGhpcyBpcyBhIHNpZ25lZCBtZXNzYWdlIiwiZXhwIjoiMjAyMi0wMS0wMVQwMDowMDowMCswMDowMCJ9v3Jt8mx_TdM2ceTGoqwrh4yDFn0XsHvvV_D0DtwQxVrJEBMl0F2caAdgnpKlt4p7xBnx1HcO-SPo8FPp214HDw.eyJraWQiOiJ6VmhNaVBCUDlmUmYyc25FY1Q3Z0ZUaW9lQTlDT2NOeTlEZmdMMVc2MGhhTiJ9"
 
         let key = try! AsymmetricPublicKey(
@@ -59,12 +64,9 @@ final class PasetoTests: XCTestCase {
         let parser = Parser<Public>(rules: [])
         let token = try! parser.verify(rawToken, with: key)
 
-        XCTAssertEqual(
-            ["data": "this is a signed message", "exp": "2022-01-01T00:00:00Z"],
-            token.claims.asDictionary
-        )
+        #expect(["data": "this is a signed message", "exp": "2022-01-01T00:00:00Z"] == token.claims.asDictionary)
 
-        XCTAssertEqual("{\"kid\":\"zVhMiPBP9fRf2snEcT7gFTioeA9COcNy9DfgL1W60haN\"}", token.footer)
+        #expect("{\"kid\":\"zVhMiPBP9fRf2snEcT7gFTioeA9COcNy9DfgL1W60haN\"}" == token.footer)
     }
 
     func testDocExample() throws {
@@ -77,7 +79,7 @@ final class PasetoTests: XCTestCase {
         let importedMessage = Message<Local>(pasetoString)!
         let decrypted = try! Local.decrypt(importedMessage, with: importedKey)
 
-        XCTAssertEqual("Hello world!", String(validating: decrypted.content, as: UTF8.self))
+        #expect("Hello world!" == String(validating: decrypted.content, as: UTF8.self))
     }
 }
 
