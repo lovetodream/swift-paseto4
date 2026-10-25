@@ -1,6 +1,6 @@
 import Crypto
 
-public enum Public {
+public enum Public: Sendable {
     static func sign(
         content: Span<UInt8>,
         footer: Span<UInt8>,
