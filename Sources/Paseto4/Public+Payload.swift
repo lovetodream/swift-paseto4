@@ -1,26 +1,29 @@
-import struct Foundation.Data
-
 extension Public: PayloadContainer {
     public struct Payload {
         static let signatureLength = 64
 
-        let message: Data
-        let signature: Data
+        let message: [UInt8]
+        let signature: [64 of UInt8]
     }
 }
 
 extension Public.Payload: Payload {
-    public var data: Data { self.message + self.signature }
+    public var bytes: [UInt8] {
+        var bytes = [UInt8]()
+        bytes.reserveCapacity(self.message.count + Self.signatureLength)
+        bytes.append(contentsOf: self.message)
+        bytes.append(copying: self.signature.span)
+        return bytes
+    }
 
-    public init?(data: Data) {
-        let signatureOffset = data.count - Public.Payload.signatureLength
+    public init?(bytes: [UInt8]) {
+        let signatureOffset = bytes.count - Public.Payload.signatureLength
 
         guard signatureOffset > 0 else { return nil }
 
-        self.init(message: data[..<signatureOffset], signature: data[signatureOffset...])
-    }
-
-    public subscript(position: Int) -> UInt8 {
-        self.data[position]
+        self.init(
+            message: Array(bytes[..<signatureOffset]),
+            signature: [64 of UInt8] { bytes[signatureOffset + $0] }
+        )
     }
 }

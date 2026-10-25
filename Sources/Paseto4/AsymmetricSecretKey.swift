@@ -1,62 +1,43 @@
 import Crypto
-import struct Foundation.Data
 
 public struct AsymmetricSecretKey {
     static let length = 32 // + 32
-    static let seedLength = 32
-    static let keyPairLength = 96
 
-    public let material: Data
+    /// The 32 byte Ed25519 seed.
+    public let material: [32 of UInt8]
 
-    public init(material: Data) throws {
-        let length = AsymmetricSecretKey.length
+    /// Kept around so signing doesn't have to derive the key every time.
+    let privateKey: Curve25519.Signing.PrivateKey
 
-        if material.count == 64 { // contains public key as suffix
-            self.material = material.prefix(32)
-            return
-        }
-
-        guard material.count == length else {
-            fatalError("TODO: bad length - secret key must be \(length) bytes long; \(material.count) given.")
-        }
-
+    public init(material: [32 of UInt8]) {
         self.material = material
-    }
-}
-
-extension AsymmetricSecretKey {
-    init(keyPair material: Data) throws {
-        let keyPairLength = AsymmetricSecretKey.keyPairLength
-
-        guard material.count == keyPairLength else {
-            fatalError("TODO: bad length - Key pair must be \(keyPairLength) bytes long; \(material.count) given.")
+        self.privateKey = try! material.span.withUnsafeBytes {
+            try Curve25519.Signing.PrivateKey(rawRepresentation: $0)
         }
-
-        self.material = material
-    }
-
-    init(seed material: Data) throws {
-        let seedLength = AsymmetricSecretKey.seedLength
-
-        guard material.count == seedLength else {
-            fatalError("TODO: bad length - Seed must be \(seedLength) bytes long; \(material.count) given.")
-        }
-
-        self.material = try Curve25519.Signing.PrivateKey(rawRepresentation: material).rawRepresentation
     }
 }
 
 extension AsymmetricSecretKey: Key {
-    var seed: Data {
-        self.material[..<AsymmetricSecretKey.seedLength]
+    public init(bytes: Span<UInt8>) {
+        let length = AsymmetricSecretKey.length
+
+        // a 64 byte secret key contains the public key as suffix
+        guard bytes.count == length || bytes.count == 2 * length else {
+            fatalError("TODO: bad length - secret key must be \(length) bytes long; \(bytes.count) given.")
+        }
+
+        self.init(material: .init(copying: bytes))
     }
 
+    public var bytes: [UInt8] { Array(copying: self.material.span) }
+
     public var publicKey: AsymmetricPublicKey {
-        AsymmetricPublicKey(data: try! Curve25519.Signing.PrivateKey(rawRepresentation: self.seed).publicKey.rawRepresentation)!
+        let publicKey = self.privateKey.publicKey.rawRepresentation
+        return AsymmetricPublicKey(material: [32 of UInt8] { publicKey[publicKey.startIndex + $0] })
     }
 
     public init() {
         let secretKey = Curve25519.Signing.PrivateKey().rawRepresentation
-        try! self.init(material: secretKey)
+        self.init(material: [32 of UInt8] { secretKey[secretKey.startIndex + $0] })
     }
 }

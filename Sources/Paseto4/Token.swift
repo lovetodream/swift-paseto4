@@ -37,10 +37,10 @@ public struct Token {
                 dict["aud"] = audience
             }
             if let expiration {
-                dict["exp"] = Token.timeFormatter.string(from: expiration)
+                dict["exp"] = expiration.formatted(.iso8601)
             }
             if let issuedAt {
-                dict["iat"] = Token.timeFormatter.string(from: issuedAt)
+                dict["iat"] = issuedAt.formatted(.iso8601)
             }
             if let issuer {
                 dict["iss"] = issuer
@@ -49,7 +49,7 @@ public struct Token {
                 dict["jti"] = jti
             }
             if let notBefore {
-                dict["nbf"] = Token.timeFormatter.string(from: notBefore)
+                dict["nbf"] = notBefore.formatted(.iso8601)
             }
             if let subject {
                 dict["sub"] = subject
@@ -109,7 +109,6 @@ public struct Token {
         }
     }
 
-    static let timeFormatter = ISO8601DateFormatter()
     static let decoder: JSONDecoder = {
         var decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
@@ -126,26 +125,22 @@ public struct Token {
         self.footer = footer
     }
 
-    public init(encodedData: Data, footer: String) throws {
-        self.claims = try Self.decoder.decode(Claims.self, from: encodedData)
+    public init(encodedData: [UInt8], footer: String) throws {
+        self.claims = try Self.decoder.decode(Claims.self, from: Data(encodedData))
         self.footer = footer
     }
 }
 
 public extension Token {
     func sign(with key: AsymmetricSecretKey) throws -> String {
-        try Public.sign(
-            Token.encoder.encode(self.claims),
-            with: key,
-            footer: Data(footer.utf8)
-        ).description
+        let claims = try Token.encoder.encode(self.claims)
+        let footer = Array(self.footer.utf8)
+        return try Public.sign(claims.span, with: key, footer: footer.span).description
     }
 
     func encrypt(with key: SymmetricKey) throws -> String {
-        try Local.encrypt(
-            Token.encoder.encode(self.claims),
-            with: key,
-            footer: Data(footer.utf8)
-        ).description
+        let claims = try Token.encoder.encode(self.claims)
+        let footer = Array(self.footer.utf8)
+        return try Local.encrypt(claims.span, with: key, footer: footer.span).description
     }
 }

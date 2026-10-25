@@ -1,5 +1,3 @@
-import Foundation
-
 enum Version: String {
     case v4 = "v4"
 }
@@ -36,22 +34,15 @@ extension Header: CustomStringConvertible {
     }
 }
 
-extension Header: DataProtocol {
-    subscript(position: Data.Index) -> Data.Element {
-        self.data[position]
-    }
-    
-    var regions: Data.Regions {
-        self.data.regions
-    }
-    
-    var startIndex: Data.Index {
-        self.data.startIndex
-    }
-    
-    var endIndex: Data.Index {
-        self.data.endIndex
-    }
+extension Header {
+    private static let localBytes = Array("v4.local.".utf8)
+    private static let publicBytes = Array("v4.public.".utf8)
 
-    var data: Data { self.description.data(using: .utf8)! }
+    /// The serialized header, e.g. `v4.local.`.
+    var bytes: [UInt8] {
+        switch self.purpose {
+        case .local: Self.localBytes
+        case .public: Self.publicBytes
+        }
+    }
 }

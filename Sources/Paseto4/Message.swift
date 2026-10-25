@@ -1,5 +1,3 @@
-import struct Foundation.Data
-
 public protocol PayloadContainer {
     associatedtype Payload: Paseto4.Payload
 }
@@ -9,9 +7,9 @@ public struct Message<Container: PayloadContainer> {
 
     let header: Header = Message.header
     let payload: Payload
-    let footer: Data
+    let footer: [UInt8]
 
-    init(payload: Payload, footer: Data = Data()) {
+    init(payload: Payload, footer: [UInt8] = []) {
         self.payload = payload
         self.footer = footer
     }
@@ -22,8 +20,8 @@ public struct Message<Container: PayloadContainer> {
         ) = Message.deconstruct(string) else { return nil }
 
         guard header == Message.header,
-              let payload = Payload(encoded: String(encodedPayload)),
-              let footer = Data(base64URLEncoded: String(encodedFooter))
+              let payload = Payload(encoded: encodedPayload),
+              let footer = base64URLDecodedBytes(encodedFooter)
         else { return nil }
 
         self.init(payload: payload, footer: footer)
@@ -32,7 +30,11 @@ public struct Message<Container: PayloadContainer> {
     static func deconstruct(
         _ string: String
     ) -> (header: Header, encodedPayload: Substring, encodedFooter: Substring)? {
-        let parts = string.split(separator: ".")
+        // Splitting the UTF-8 view avoids the grapheme breaking a `Character` based split performs
+        // over the whole (potentially large) token.
+        let parts = string.utf8
+            .split(separator: UInt8(ascii: "."))
+            .map { Substring($0) }
 
         guard [3, 4].contains(parts.count) else { return nil }
 
@@ -54,13 +56,13 @@ extension Message: CustomStringConvertible {
     public var description: String {
         let main = self.header.description + payload.encoded
         guard !self.footer.isEmpty else { return main }
-        return "\(main).\(self.footer.base64URLEncodedString(noPadding: true))"
+        return "\(main).\(base64URLEncodedString(self.footer.span, noPadding: true))"
     }
 }
 
 extension Message {
     func token(package: Package) throws -> Token {
-        guard let footer = String(data: package.footer, encoding: .utf8) else {
+        guard let footer = String(validating: package.footer, as: UTF8.self) else {
             fatalError(
                 "TODO: Could not convert the footer to a UTF-8 string."
             )

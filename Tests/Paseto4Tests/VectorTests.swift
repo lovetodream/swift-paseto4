@@ -54,7 +54,7 @@ class VectorTest: XCTestCase {
                       let decrypted = try? Local.decrypt(
                         message,
                         with: sk,
-                        implicit: test.implicitAssertion.data(using: .utf8)!
+                        implicit: Array(test.implicitAssertion.utf8).span
                       )
                 else {
                     XCTAssertTrue(test.expectFail, test.name)
@@ -69,7 +69,7 @@ class VectorTest: XCTestCase {
                       let verified = try? Public.verify(
                         message,
                         with: pk,
-                        implicit: test.implicitAssertion.data(using: .utf8)!
+                        implicit: Array(test.implicitAssertion.utf8).span
                       )
                 else {
                     XCTAssertTrue(test.expectFail, test.name)
@@ -86,17 +86,17 @@ class VectorTest: XCTestCase {
                 continue
             }
 
-            XCTAssertEqual(String(data: decoded.content, encoding: .utf8), expected, test.name)
+            XCTAssertEqual(String(validating: decoded.content, as: UTF8.self), expected, test.name)
 
             switch test.key {
             case .some:
                 let sk = try SymmetricKey(hex: test.key!)
 
                 let encrypted = try Local.encrypt(
-                    Package(expected.data(using: .utf8)!, footer: test.footer.data(using: .utf8)!),
+                    Package(Array(expected.utf8), footer: Array(test.footer.utf8)),
                     with: sk,
-                    implicit: test.implicitAssertion.data(using: .utf8)!,
-                    nonce: Data(hexString: test.nonce!)
+                    implicit: Array(test.implicitAssertion.utf8).span,
+                    nonce: [UInt8](hexString: test.nonce!)
                 )
 
                 XCTAssertEqual(encrypted.description, test.token, test.name)
