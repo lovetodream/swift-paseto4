@@ -1,6 +1,6 @@
 import Crypto
 
-public struct AsymmetricPublicKey {
+public struct AsymmetricPublicKey: Sendable {
     static let length = 32
 
     public let material: [32 of UInt8]

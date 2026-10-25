@@ -1,10 +1,10 @@
 import Foundation
 
-public struct Token {
+public struct Token: Sendable {
     public var claims: Claims
     public var footer: String
 
-    public struct Claims: Codable {
+    public struct Claims: Decodable, Sendable {
         public var audience: String?
         public var expiration: Date?
         public var issuedAt: Date?
@@ -13,7 +13,7 @@ public struct Token {
         public var notBefore: Date?
         public var subject: String?
         /// Additional custom claims.
-        public var additional: [String: LosslessStringConvertible?] = [:]
+        public var additional: [String: (LosslessStringConvertible & Sendable)?] = [:]
 
         enum CodingKeys: String, CodingKey, CaseIterable {
             case audience = "aud"
@@ -26,7 +26,7 @@ public struct Token {
             case additional // unused
         }
 
-        /// Used for testing.
+        /// Used for testing and encoding.
         internal var asDictionary: [String: String] {
             var dict: [String: String] = additional.reduce(into: [:], { partialResult, pair in
                 if pair.value != nil {
@@ -65,7 +65,7 @@ public struct Token {
             jti: String? = nil,
             notBefore: Date? = nil,
             subject: String? = nil,
-            additional: [String: LosslessStringConvertible?] = [:]
+            additional: [String: (LosslessStringConvertible & Sendable)?] = [:]
         ) {
             self.audience = audience
             self.expiration = expiration
@@ -93,19 +93,8 @@ public struct Token {
             }
         }
 
-        public func encode(to encoder: Encoder) throws {
-            var additionalContainer = encoder.singleValueContainer()
-            try additionalContainer.encode(self.additional.reduce(into: [String: String?](), { partialResult, pair in
-                partialResult[pair.key] = pair.value.flatMap { String($0) }
-            }))
-            var container = encoder.container(keyedBy: Token.Claims.CodingKeys.self)
-            try container.encodeIfPresent(self.audience, forKey: Token.Claims.CodingKeys.audience)
-            try container.encodeIfPresent(self.expiration, forKey: Token.Claims.CodingKeys.expiration)
-            try container.encodeIfPresent(self.issuedAt, forKey: Token.Claims.CodingKeys.issuedAt)
-            try container.encodeIfPresent(self.issuer, forKey: Token.Claims.CodingKeys.issuer)
-            try container.encodeIfPresent(self.jti, forKey: Token.Claims.CodingKeys.jti)
-            try container.encodeIfPresent(self.notBefore, forKey: Token.Claims.CodingKeys.notBefore)
-            try container.encodeIfPresent(self.subject, forKey: Token.Claims.CodingKeys.subject)
+        public func encode(using encoder: JSONEncoder) throws -> Data {
+            try encoder.encode(self.asDictionary)
         }
     }
 
@@ -142,5 +131,11 @@ public extension Token {
         let claims = try Token.encoder.encode(self.claims)
         let footer = Array(self.footer.utf8)
         return try Local.encrypt(claims.span, with: key, footer: footer.span).description
+    }
+}
+
+extension Token.Claims: Equatable {
+    public static func == (lhs: Token.Claims, rhs: Token.Claims) -> Bool {
+        lhs.asDictionary == rhs.asDictionary
     }
 }

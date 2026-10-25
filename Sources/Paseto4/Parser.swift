@@ -1,4 +1,4 @@
-public struct Parser<Container: PayloadContainer> {
+public struct Parser<Container: PayloadContainer>: Sendable {
     public typealias Payload = Container.Payload
 
     public var rules: [Rule]

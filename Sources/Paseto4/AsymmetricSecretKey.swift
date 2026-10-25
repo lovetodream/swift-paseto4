@@ -1,6 +1,6 @@
 import Crypto
 
-public struct AsymmetricSecretKey {
+public struct AsymmetricSecretKey: Sendable {
     static let length = 32 // + 32
 
     /// The 32 byte Ed25519 seed.
